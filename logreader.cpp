@@ -92,17 +92,28 @@ QList<QPair<QString, double> > LogReader::GetTentBestVariableValues()
 
     QList<QPair<QString, double> > values = QList<QPair<QString, double> >();
     QString best_case_id_ = GetTentBestUuid();
+
+    // Get property IDs and values
     QStringList ReaVarID = log_cases_->GetColumnValues("ReaVarID");
+    QStringList IntVarID = log_cases_->GetColumnValues("IntVarID");
     QStringList ReaVarVal = log_cases_->GetColumnValues("ReaVarVal");
+    QStringList IntVarVal = log_cases_->GetColumnValues("IntVarVal");
     QStringList CaseIDs = log_cases_->GetColumnValues("CaseID");
     QStringList CaseEvaluated = log_cases_->GetColumnValues("Evaluated");
 
     for (int i = 0; i < CaseIDs.length(); ++i) {
         if (QString::compare(CaseIDs[i], best_case_id_) == 0) {
             if (QString::compare(CaseEvaluated[i], "true") == 0) {
-                QString var_name = getPropertyName(ReaVarID[i]);
-                double var_val = ReaVarVal[i].toDouble();
-                values.append(QPair<QString, double>(var_name, var_val));
+                if (ReaVarID.length() > 0) {
+                    QString var_name = getPropertyName(ReaVarID[i]);
+                    double var_val = ReaVarVal[i].toDouble();
+                    values.append(QPair<QString, double>(var_name, var_val));
+                }
+                if (IntVarID.length() > 0) {
+                    QString var_name = getPropertyName(IntVarID[i]);
+                    int var_val = IntVarVal[i].toInt();
+                    values.append(QPair<QString, int>(var_name, var_val));
+                }
             }
         }
     }
@@ -157,7 +168,9 @@ QStringList LogReader::CsvFile::GetHeaders()
 
 QStringList LogReader::CsvFile::GetColumnValues(QString column_header)
 {
-    return columns_[column_header];
+    if (columns_.contains(column_header))
+        return columns_[column_header];
+    else return QStringList();
 }
 
 QStringList LogReader::CsvFile::readFile(QString path)
